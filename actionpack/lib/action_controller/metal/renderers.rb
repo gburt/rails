@@ -155,8 +155,17 @@ module ActionController
       nil
     end
 
+    config_accessor :default_json_pretty
+    self.default_json_pretty = false if default_json_pretty.nil?
+
     add :json do |json, options|
-      json = json.to_json(options) unless json.kind_of?(String)
+      unless json.kind_of?(String)
+        pretty = false
+        pretty = options[:pretty] unless options[:pretty].nil?
+        pretty = default_json_pretty if pretty.nil?
+
+        json = json.to_json(pretty ? JSON::PRETTY_STATE_PROTOTYPE : nil)
+      end
 
       if options[:callback].present?
         if content_type.nil? || content_type == Mime[:json]
